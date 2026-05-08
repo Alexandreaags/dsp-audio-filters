@@ -1,0 +1,71 @@
+Passa Faixa
+clear
+clc
+close all
+pkg load signal
+%%%%%%%% parametros %%%%%%%%%
+Fs = 1e3;
+fc1 = 10;
+fc2 = 450;
+N = 500;
+M = 4;
+t = 0:N-1;
+t = t/Fs;
+%%%%%%%%% protgico %%%%%%%%%%
+wa=2*pi*fc1;
+wb=2*pi*fc2
+[sb, sa] = butter(M, [wa, wb], 's');
+
+%%%%%%% Invarincia da Resposta ao Impulso %%%%%%%%%%%%
+[zb_iri, za_iri] = impinvar(sb, sa, Fs);
+%%% visualizar a resposta em frequencia
+%%% do filtro criado
+figure
+freqz(zb_iri, za_iri,1000,'',Fs);
+%%%%%%%%%%%%%%% Transformao bilinear %%%%%%%%%%%%%%
+%% pre distorao de frequencias
+wd = fc1/(Fs/2)*pi;
+wa = 2*Fs*tan(wd/2);
+%% somente para verificao
+%% do quanto a frequncia distorceuncia distorceu
+fa=wa/(2*pi);fa=wa/(2*pi);
+[sb, sa] = butter(M, [wa, wb], 's');
+[zb_tbl,za_tbl] = bilinear(sb, sa, 1/Fs);[zb_tbl,za_tbl] = bilinear(sb, sa, 1/Fs);
+%%% visualizar a resposta em frequencia%%% visualizar a resposta em frequencia
+%%% do filtro criado%%% do filtro criado
+figurefigure
+freqz(zb_tbl, za_tbl,1000,'',Fs);freqz(zb_tbl, za_tbl,1000,'',Fs);
+%%%%%%%%%%% teste %%%%%%%%%%%%%%%%%%%%%%% teste %%%%%%%%%%%%
+%% Comparao de sinais exemplo no tempo%% Comparao de sinais exemplo no tempo
+sinal = sin(2*pi*20*t) + 0.2*sin(2*pi*400*t); %+ sin(2*pi*300*t)sinal = sin(2*pi*20*t) + 0.2*sin(2*pi*400*t); %+ sin(2*pi*300*t)
+sinal_filtrado_iri = filter(zb_iri,za_iri,sinal)sinal_filtrado_iri = filter(zb_iri,za_iri,sinal)
+sinal_filtrado_tbl = filter(zb_tbl,za_tbl,sinal)sinal_filtrado_tbl = filter(zb_tbl,za_tbl,sinal)
+figurefigure
+subplot(2,1,1)subplot(2,1,1)
+plot(sinal)plot(sinal)
+holdhold
+plot(sinal_filtrado_iri)plot(sinal_filtrado_iri)
+subplot(2,1,2)subplot(2,1,2)
+plot(sinal)plot(sinal)
+holdhold
+plot(sinal_filtrado_tbl)plot(sinal_filtrado_tbl)
+%% Comparao dos sinais no tempo%% Comparao dos sinais no tempo
+f_vector=0:N-1;f_vector=0:N-1;
+f_vector = f_vector*Fs/N;f_vector = f_vector*Fs/N;
+f_vector_nyq = f_vector(1:length(f_vector)/2);f_vector_nyq = f_vector(1:length(f_vector)/2);
+figurefigure
+SINAL = fft(sinal);SINAL = fft(sinal);
+SINAL_FILTRADO_IRI = fft(sinal_filtrado_iri);SINAL_FILTRADO_IRI = fft(sinal_filtrado_iri);
+SINAL_FILTRADO_TBL = fft(sinal_filtrado_tbl);SINAL_FILTRADO_TBL = fft(sinal_filtrado_tbl);
+%Comparao dos espectros%Comparao dos espectros
+subplot(2,1,1)subplot(2,1,1)
+plot(f_vector_nyq, abs(SINAL(1:length(SINAL)/2)));plot(f_vector_nyq, abs(SINAL(1:length(SINAL)/2)));
+holdhold
+plot(f_vector_nyq,plot(f_vector_nyq,
+abs(SINAL_FILTRADO_IRI(1:length(SINAL_FILTRADO_IRI)/2)));abs(SINAL_FILTRADO_IRI(1:length(SINAL_FILTRADO_IRI)/2)));
+subplot(2,1,2)subplot(2,1,2)
+plot(f_vector_nyq, abs(SINAL(1:length(SINAL)/2)));plot(f_vector_nyq, abs(SINAL(1:length(SINAL)/2)));
+holdhold
+plot(f_vector_nyq,plot(f_vector_nyq,
+abs(SINAL_FILTRADO_TBL(1:length(SINAL_FILTRADO_TBL)/2)));abs(SINAL_FILTRADO_TBL(1:length(SINAL_FILTRADO_TBL)/2)));
+
