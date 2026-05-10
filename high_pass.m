@@ -12,7 +12,7 @@ end
 %%%%%%%% parametros do Filtro %%%%%%%%%
 N = 630;              % Agora sim, esta é a ordem (tamanho) do filtro
 M = floor(N / 2);      % M é calculado automaticamente com base no N
-fc = 250
+fc = 2000
 wc = 2 * pi * (fc / Fs) 
 
 %%%%%%%%%%%%%%% Filtro PA (Passa-Alta) %%%%%%%%%%%%%%
