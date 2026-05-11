@@ -24,10 +24,24 @@ Wa_s = 2 * Fs * tan(Wd_s/2);
 [sb, sa] = cheby1(M, Rp, wc, 'stop', 's');
 [zb, za] = bilinear(sb, sa, 1/Fs);
 
-%% 4. Resposta em Frequência
+%% 4. Resposta em Frequência (Escala Logarítmica)
+% Extrai os dados de frequência (f) e resposta complexa (H)
+[H, f] = freqz(zb, za, 10000, Fs);
+
+% Calcula a magnitude em dB (normalizada para 0 dB no pico máximo)
+H_db = 20*log10(abs(H) / max(abs(H)) + eps);
+
 figure;
-freqz(zb, za, 10000, Fs);
-title('Resposta em Frequência - Rejeita-Faixa (IIR)');
+semilogx(f, H_db, 'LineWidth', 1.5, 'b');
+% Altere o título abaixo conforme o filtro (Passa-Alta, Rejeita-Faixa ou Passa-Baixa)
+title('Resposta em Frequência (IIR)'); 
+xlabel('Frequência (Hz) - Escala Logarítmica');
+ylabel('Magnitude (dB)');
+grid on;
+
+% Define os limites do gráfico para visualização ideal do Bode
+xlim([10 Fs/2]); % Inicia em 10Hz para evitar erro de log(0) e vai até Nyquist
+ylim([-100 5]);  % Limita o Y para focar no ripple e na atenuação de 60 dB
 
 %% 5. Teste no Tempo e Filtragem
 sinal_filtrado = filter(zb, za, sinal);
