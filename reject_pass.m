@@ -35,7 +35,7 @@ h = h.*w;
 
 figure;
 stem(h);
-title('Resposta ao Impulso Rejeita-Faixa (Janela de Kaiser)');
+title('Resposta ao Impulso FIR Rejeita-Faixa (Janela de Kaiser)');
 
 % Espectro do Filtro (Diagrama de Bode)
 h_z = [h zeros(1, 50000)]; % Zero-padding para alta resolução
@@ -52,7 +52,7 @@ f_filter = linspace(0, Fs/2, length(H_mag));
 
 figure;
 semilogx(f_filter, H_db, 'LineWidth', 1.5);
-title('Resposta em Frequência do Filtro Rejeita-Faixa');
+title('Resposta em Frequência do Filtro FIR Rejeita-Faixa');
 xlabel('Frequência (Hz)');
 ylabel('Magnitude (dB)');
 grid on; 
@@ -70,7 +70,7 @@ sinal_filtrado = filter(h, 1, sinal);
 
 figure;
 plot(sinal_filtrado);
-title('Sinal Filtrado no Tempo (Rejeita-Faixa)');
+title('Sinal Filtrado no Tempo (Filtro FIR Rejeita-Faixa)');
 xlabel('Amostras');
 
 %% Audio filtrado
@@ -89,7 +89,7 @@ figure;
 plot(f_vector_nyq, abs(SINAL(1:floor(L/2))), 'b');
 hold on;
 plot(f_vector_nyq, abs(SINAL_FILTRADO(1:floor(L/2))), 'r');
-title('Comparação dos Espectros: Original vs Filtrado (RF)');
+title('Comparação dos Espectros: Original vs Filtrado (Filtro FIR RF)');
 xlabel('Frequência (Hz)');
 ylabel('Magnitude');
 legend('Sinal Original', 'Sinal Filtrado');

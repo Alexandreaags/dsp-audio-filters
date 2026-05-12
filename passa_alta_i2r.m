@@ -12,7 +12,7 @@ end
 %%%%%%%% Parâmetros do Filtro IIR (Passa-Alta) %%%%%%%%%
 % Em IIR, definimos exatamente as duas bordas para cravar a 1 oitava
 Fpass = 2000; % Início da banda de passagem (Hz)
-Fstop = 3000; % Fim da banda de rejeição (Hz) -> Exatamente 1 oitava abaixo!
+Fstop = 1000; % Fim da banda de rejeição (Hz) -> Exatamente 1 oitava abaixo!
 
 Apass = 0.5;    % Ripple máximo permitido na banda de passagem (dB)
 Astop = 60;   % Atenuação mínima na banda de rejeição (dB)
@@ -26,7 +26,7 @@ Ws = Fstop / (Fs/2);
 [N_ordem, Wn] = ellipord(Wp, Ws, Apass, Astop);
 
 % 2. Gera os coeficientes 'b' (numerador) e 'a' (denominador) do filtro
-[b, a] = ellip(N_ordem, Apass, Astop, Wp, 'low');
+[b, a] = ellip(N_ordem, Apass, Astop, Wp, 'high');
 
 % Exibe a ordem no terminal para você ver a diferença de eficiência
 fprintf('Ordem do filtro IIR projetado: %d\n', N_ordem);
@@ -51,7 +51,7 @@ H_db = 20*log10(H_mag + eps);
 
 figure;
 semilogx(f_filter, H_db, 'LineWidth', 1.5);
-title('Resposta em Frequência do Filtro IIR (Passa-Baixa)');
+title('Resposta em Frequência do Filtro IIR (Passa-Alta)');
 xlabel('Frequência (Hz)');
 ylabel('Magnitude (dB)');
 grid on;
@@ -74,8 +74,8 @@ title('Sinal Filtrado no Tempo (IIR)');
 xlabel('Amostras');
 
 %% Audio filtrado
-audiowrite('minha_gravacao_PB_IIR.wav', sinal_filtrado, Fs);
-disp('Áudio filtrado salvo como "minha_gravacao_PB_IIR.wav"');
+audiowrite('minha_gravacao_PA_IIR.wav', sinal_filtrado, Fs);
+disp('Áudio filtrado salvo como "minha_gravacao_PA_IIR.wav"');
 
 %% Comparacao dos espectros
 L = length(sinal); 

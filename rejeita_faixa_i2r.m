@@ -1,52 +1,91 @@
 %%pkg load signal
 
 %% 1. Carregamento do Áudio
+% Lemos o arquivo diretamente para garantir o Fs correto (44100 Hz)
 [sinal, Fs] = audioread('minha_gravacao.wav');
+
+% Garante que o áudio seja mono para facilitar a filtragem
 if size(sinal, 2) > 1
     sinal = mean(sinal, 2);
 end
 
-%% 2. Parâmetros do Filtro Rejeita-Faixa (IIR)
-Rp = 1;  % Ripple na passagem (dB)
-Rs = 60; % Atenuação na rejeição (dB)
-fp1 = 250;  fp2 = 2000; % Frequências onde a passagem termina e recomeça
-fs1 = 500;  fs2 = 1000; % Frequências da banda de rejeição (1 oitava para dentro)
+%%%%%%%% Parâmetros do Filtro IIR (Rejeita-Faixa) %%%%%%%%%
+% Definindo as bordas em vetores para cravar 1 oitava de transição:
+% Fpass = [Fim_Graves, Inicio_Agudos]
+% Fstop = [Inicio_Rejeicao, Fim_Rejeicao]
+Fpass = [250, 2000]; 
+Fstop = [500, 1000]; 
 
-% Pré-distorção para Bilinear
-Wd_p = [fp1, fp2] / (Fs/2) * pi;
-Wa_p = 2 * Fs * tan(Wd_p/2);
+Apass = 0.5;  % Ripple máximo permitido nas bandas de passagem (dB)
+Astop = 60;   % Atenuação mínima na banda de rejeição (dB)
 
-Wd_s = [fs1, fs2] / (Fs/2) * pi;
-Wa_s = 2 * Fs * tan(Wd_s/2);
+% Normalizando as frequências por Nyquist (Fs/2)
+Wp = Fpass / (Fs/2);
+Ws = Fstop / (Fs/2);
 
-%% 3. Projeto Analógico e Bilinear
-[M, wc] = cheb1ord(Wa_p, Wa_s, Rp, Rs, 's');
-[sb, sa] = cheby1(M, Rp, wc, 'stop', 's');
-[zb, za] = bilinear(sb, sa, 1/Fs);
+%%%%%%%%%%%%%%% Projeto do Filtro IIR (Elíptico) %%%%%%%%%%%%%%
+% 1. A função ellipord entende que é um rejeita-faixa porque Wp e Ws são vetores
+% e Wp(1) < Ws(1) < Ws(2) < Wp(2)
+[N_ordem, Wn] = ellipord(Wp, Ws, Apass, Astop);
 
-%% 4. Resposta em Frequência
+% 2. Gera os coeficientes 'b' (numerador) e 'a' (denominador). 
+% Usamos 'stop' para forçar o rejeita-faixa
+[b, a] = ellip(N_ordem, Apass, Astop, Wn, 'stop');
+
+% Exibe a ordem no terminal
+fprintf('Ordem do filtro IIR Rejeita-Faixa projetado: %d\n', N_ordem);
+
+%%%%%%%%%%% Resposta ao Impulso %%%%%%%%%%%%%
+% Diferente do FIR, o IIR é infinito. Simulamos injetando um impulso [1 0 0 0...]
+impulso = [1; zeros(99, 1)]; 
+h_impz = filter(b, a, impulso);
+
 figure;
-freqz(zb, za, 10000, Fs);
-title('Resposta em Frequência - Rejeita-Faixa (IIR)');
+stem(0:99, h_impz);
+title('Resposta ao Impulso IIR (Primeiras 100 amostras)');
+xlabel('Amostras');
+ylabel('Amplitude');
 
-%% 5. Teste no Tempo e Filtragem
-sinal_filtrado = filter(zb, za, sinal);
+%%%%%%%%%%% Espectro do Filtro (Diagrama de Bode) %%%%%%%%%%%%%
+% A função freqz calcula a resposta em frequência diretamente dos coeficientes
+[H, f_filter] = freqz(b, a, 50000, Fs);
+
+H_mag = abs(H);
+H_db = 20*log10(H_mag + eps); 
 
 figure;
-subplot(2,1,1);
+semilogx(f_filter, H_db, 'LineWidth', 1.5);
+title('Resposta em Frequência do Filtro IIR (Rejeita-Faixa)');
+xlabel('Frequência (Hz)');
+ylabel('Magnitude (dB)');
+grid on;
+xlim([10 Fs/2]);
+ylim([-100 5]);
+
+%%%%%%%%%%% Teste no Tempo %%%%%%%%%%%%
+%% Comparacao de sinais no tempo
+figure;
 plot(sinal);
 title('Sinal Original no Tempo');
-subplot(2,1,2);
+xlabel('Amostras');
+
+% A filtragem IIR usa tanto 'b' quanto 'a'
+sinal_filtrado = filter(b, a, sinal);
+
+figure;
 plot(sinal_filtrado);
-title('Sinal Filtrado no Tempo (Rejeita-Faixa IIR)');
+title('Sinal Filtrado no Tempo (IIR Rejeita-Faixa)');
+xlabel('Amostras');
 
-audiowrite('minha_gravacao_IIR_RF.wav', sinal_filtrado, Fs);
-disp('Áudio salvo como "minha_gravacao_IIR_RF.wav"');
+%% Audio filtrado
+audiowrite('minha_gravacao_RF_IIR.wav', sinal_filtrado, Fs);
+disp('Áudio filtrado salvo como "minha_gravacao_RF_IIR.wav"');
 
-%% 6. Comparação dos Espectros
+%% Comparacao dos espectros
 L = length(sinal); 
 f_vector = (0:L-1) * (Fs / L);
 f_vector_nyq = f_vector(1:floor(L/2));
+
 SINAL = fft(sinal);
 SINAL_FILTRADO = fft(sinal_filtrado);
 
@@ -54,9 +93,8 @@ figure;
 plot(f_vector_nyq, abs(SINAL(1:floor(L/2))), 'b');
 hold on;
 plot(f_vector_nyq, abs(SINAL_FILTRADO(1:floor(L/2))), 'r');
-title('Espectros: Original vs Filtrado (Rejeita-Faixa IIR)');
+title('Comparação dos Espectros: Original vs Filtrado (IIR Rejeita-Faixa)');
 xlabel('Frequência (Hz)');
 ylabel('Magnitude');
 legend('Sinal Original', 'Sinal Filtrado');
-xlim([0 3000]); % Foco nas bandas de corte
 hold off;

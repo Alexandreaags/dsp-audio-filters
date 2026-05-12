@@ -30,7 +30,7 @@ h = h.*w;
 
 figure;
 stem(h);
-title('Resposta ao Impulso (Janela de Kaiser)');
+title('Resposta ao Impulso Filtro FIR Passa-Alta (Janela de Kaiser)');
 
 % Espectro do Filtro
 h_z = [h zeros(1, 50000)]; % Aumentar os zeros melhora a resolução visual (zero-padding)
@@ -48,7 +48,7 @@ f_filter = linspace(0, Fs/2, length(H_mag));
 
 figure;
 semilogx(f_filter, H_db, 'LineWidth', 1.5);
-title('Resposta em Frequência do Filtro');
+title('Resposta em Frequência do Filtro FIR Passa-Alta');
 xlabel('Frequência (Hz)');
 ylabel('Magnitude (dB)');
 grid on; % O grid ajuda MUITO a visualizar as quedas de dB
@@ -64,7 +64,7 @@ sinal_filtrado = filter(h, 1, sinal);
 
 figure;
 plot(sinal_filtrado);
-title('Sinal Filtrado no Tempo');
+title('Sinal Filtrado no Tempo (Filtro FIR Passa-Alta)');
 xlabel('Amostras');
 
 %% Audio filtrado
@@ -84,7 +84,7 @@ figure;
 plot(f_vector_nyq, abs(SINAL(1:floor(L/2))), 'b');
 hold on;
 plot(f_vector_nyq, abs(SINAL_FILTRADO(1:floor(L/2))), 'r');
-title('Comparação dos Espectros: Original vs Filtrado');
+title('Comparação dos Espectros: Original vs Filtrado (Filtro FIR PA)');
 xlabel('Frequência (Hz)');
 ylabel('Magnitude');
 legend('Sinal Original', 'Sinal Filtrado');
